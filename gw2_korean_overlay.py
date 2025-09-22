@@ -265,36 +265,7 @@ history_button = ttk.Button(button_frame,
                           style='Modern.TButton')
 history_button.pack(side='left', padx=(0, 10))
 
-# 수정 모드 버튼
-manual_mode_button = ttk.Button(button_frame,
-                               text="✏️ 수정 모드",
-                               command=lambda: toggle_manual_mode(),
-                               style='Modern.TButton')
-manual_mode_button.pack(side='left', padx=(0, 10))
-
-# 수동 저장 버튼 (초기에는 숨김)
-manual_save_button = ttk.Button(button_frame,
-                               text="💾 번역 저장",
-                               command=lambda: save_current_translation(),
-                               style='Modern.TButton')
-manual_save_button.pack(side='left', padx=(0, 10))
-manual_save_button.pack_forget()  # 초기에는 숨김
-
-# 번역 수정 버튼 (초기에는 숨김)
-edit_translation_button = ttk.Button(button_frame,
-                                    text="✏️ 번역 수정",
-                                    command=lambda: edit_current_translation(),
-                                    style='Modern.TButton')
-edit_translation_button.pack(side='left', padx=(0, 10))
-edit_translation_button.pack_forget()  # 초기에는 숨김
-
-# 건너뛰기 버튼 (초기에는 숨김)
-skip_translation_button = ttk.Button(button_frame,
-                                    text="⏭️ 건너뛰기",
-                                    command=lambda: skip_current_translation(),
-                                    style='Modern.TButton')
-skip_translation_button.pack(side='left', padx=(0, 10))
-skip_translation_button.pack_forget()  # 초기에는 숨김
+# 수정 모드 관련 버튼들 제거
 
 # 시작/중지 버튼
 toggle_button = ttk.Button(button_frame,
@@ -306,9 +277,14 @@ toggle_button.pack(side='right')
 # 전역 변수들
 is_running = False
 translation_history = []
-manual_mode = False  # 수동 모드 상태
-current_translation = None  # 현재 번역 결과
-capture_paused = False  # 캡처 일시정지 상태
+# 수정 모드 관련 변수들 제거
+manual_mode = False  # 더미 변수 (사용되지 않음)
+current_translation = None  # 더미 변수 (사용되지 않음)
+capture_paused = False  # 더미 변수 (사용되지 않음)
+manual_save_button = None  # 더미 변수 (사용되지 않음)
+edit_translation_button = None  # 더미 변수 (사용되지 않음)
+skip_translation_button = None  # 더미 변수 (사용되지 않음)
+is_worth_saving = lambda x: False  # 더미 함수 (사용되지 않음)
 
 # 새로운 기능 함수들
 def open_settings():
@@ -435,31 +411,7 @@ def export_user_db():
             json.dump(user_data, f, ensure_ascii=False, indent=2)
         messagebox.showinfo("완료", f"사용자 DB가 {filename}에 저장되었습니다.")
 
-def toggle_manual_mode():
-    """수동 모드 토글"""
-    global manual_mode
-    manual_mode = not manual_mode
-    
-    if manual_mode:
-        manual_mode_button.config(text="✏️ 자동 모드")
-        manual_save_button.pack(side='left', padx=(0, 10))  # 수정 저장 버튼 표시
-        edit_translation_button.pack(side='left', padx=(0, 10))  # 번역 수정 버튼 표시
-        skip_translation_button.pack(side='left', padx=(0, 10))  # 건너뛰기 버튼 표시
-        translation_label.config(text="수정 모드: 번역을 확인하고 원하는 버튼을 눌러주세요", 
-                               fg=COLORS['warning'])
-    else:
-        manual_mode_button.config(text="✏️ 수정 모드")
-        manual_save_button.pack_forget()  # 수정 저장 버튼 숨김
-        edit_translation_button.pack_forget()  # 번역 수정 버튼 숨김
-        skip_translation_button.pack_forget()  # 건너뛰기 버튼 숨김
-        
-        # 현재 번역 초기화 및 캡처 재개
-        global current_translation, capture_paused
-        current_translation = None
-        capture_paused = False
-        
-        translation_label.config(text="번역 결과가 여기에 표시됩니다...", 
-                               fg=COLORS['text_secondary'])
+# 수정 모드 관련 함수들 제거
 
 def edit_current_translation():
     """현재 번역을 수정할 수 있는 창 열기"""
@@ -670,46 +622,19 @@ def toggle_translation():
         toggle_button.config(text="▶️ 시작")
         ocr_status.config(text="🔍 OCR: 대기 중", fg=COLORS['warning'])
 
-def is_worth_saving(text):
-    """저장할 가치가 있는 텍스트인지 판단"""
-    # 1. 길이 체크 (너무 짧거나 긴 텍스트 제외)
-    if len(text) < 3 or len(text) > 100:
-        return False
-    
-    # 2. 특수문자만 있는 텍스트 제외
-    if not any(c.isalpha() for c in text):
-        return False
-    
-    # 3. 숫자만 있는 텍스트 제외
-    if text.isdigit():
-        return False
-    
-    # 4. 일반적인 게임 용어가 아닌 것들 제외
-    exclude_words = ['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by']
-    if text.lower() in exclude_words:
-        return False
-    
-    # 5. 이미 충분히 자주 사용된 텍스트인지 체크
-    if text in user_db_stats:
-        if user_db_stats[text].get('frequency', 0) > 10:  # 10번 이상 사용됨
-            return False
-    
-    return True
+# 자동 저장 관련 함수들 제거
 
-def find_partial_match(text, user_db, static_db):
-    """부분 일치 검색으로 기존 번역 찾기 (더 엄격한 조건)"""
-    if not text or len(text) < 10:  # 최소 길이 증가
+def translate_line_by_line(text, user_db, static_db, translator):
+    """줄별로 개별 번역 수행"""
+    if not text or len(text) < 5:
         return None, None
     
-    # 텍스트를 줄 단위로 분리
     lines = text.split('\n')
-    if len(lines) < 3:  # 최소 3줄 이상만 부분 일치 검색
+    if len(lines) < 2:  # 최소 2줄 이상만 줄별 번역
         return None, None
     
-    # 각 줄에 대해 기존 번역에서 일치하는 부분 찾기
     translated_lines = []
     found_any = False
-    match_count = 0  # 일치한 줄 수 카운트
     
     for line in lines:
         line = line.strip()
@@ -721,65 +646,27 @@ def find_partial_match(text, user_db, static_db):
         if line in static_db:
             translated_lines.append(static_db[line])
             found_any = True
-            match_count += 1
         elif line in user_db:
             translated_lines.append(user_db[line])
             found_any = True
-            match_count += 1
         else:
-            # 부분 일치 검색 (단어 단위) - 더 엄격한 조건
-            best_match = None
-            best_score = 0
-            
-            for db_text, db_translation in {**static_db, **user_db}.items():
-                if len(db_text) < 5:  # 최소 길이 증가
-                    continue
-                    
-                # 단어 단위로 비교
-                db_words = set(db_text.lower().split())
-                line_words = set(line.lower().split())
-                
-                if line_words and db_words and len(line_words) >= 3:  # 최소 3단어 이상
-                    # 교집합 비율 계산
-                    intersection = line_words.intersection(db_words)
-                    score = len(intersection) / len(line_words)
-                    
-                    if score > 0.7 and score > best_score:  # 70% 이상 일치 (더 엄격)
-                        best_match = db_translation
-                        best_score = score
-            
-            if best_match:
-                translated_lines.append(best_match)
-                found_any = True
-                match_count += 1
+            # 개별 줄 번역 (영어인지 확인)
+            if any(c.isalpha() for c in line) and not any('\uac00' <= c <= '\ud7af' for c in line):
+                try:
+                    translated_line = translator.translate(line)
+                    translated_lines.append(translated_line)
+                    found_any = True
+                except:
+                    translated_lines.append(line)  # 번역 실패시 원문 유지
             else:
-                translated_lines.append(line)  # 번역을 찾지 못한 경우 원문 유지
+                translated_lines.append(line)  # 한글이거나 특수문자면 원문 유지
     
-    # 최소 2줄 이상 일치해야만 부분 일치로 인정
-    if found_any and match_count >= 2:
-        # DB 소스 결정 (정적 DB 우선)
-        for line in lines:
-            if line.strip() in static_db:
-                return '\n'.join(translated_lines), "정적 DB (부분 일치)"
-        return '\n'.join(translated_lines), "사용자 DB (부분 일치)"
+    if found_any:
+        return '\n'.join(translated_lines), "줄별 번역"
     
     return None, None
 
-def save_translation_auto(english_text, translated):
-    """자동 모드에서 번역 저장"""
-    global user_data
-    
-    # 사용자 DB에 저장
-    user_db[english_text] = translated
-    user_data['translations'] = user_db
-    
-    # 통계 업데이트
-    update_user_db_stats(english_text, translated)
-    user_data['stats'] = user_db_stats
-    
-    # 통합 파일에 저장
-    with open(USER_DATA_FILE, 'w', encoding='utf-8') as f:
-        json.dump(user_data, f, ensure_ascii=False, indent=2)
+# 자동 저장 관련 함수들 제거
 
 # 승인 대기열 관련 함수들 제거 (자동 승인으로 변경)
 
@@ -836,11 +723,11 @@ def capture_and_translate():
                     db_source = "사용자 DB"
                     
                     if translated is None:
-                        # 3단계: 부분 일치 검색 (기존 번역에서 유사한 문장 찾기)
-                        translated, db_source = find_partial_match(english_text, user_db, static_db)
+                        # 3단계: 줄별 번역 (개별 줄 번역)
+                        translated, db_source = translate_line_by_line(english_text, user_db, static_db, translator)
                         
                         if translated is None:
-                            # 4단계: 온라인 번역
+                            # 4단계: 온라인 번역 (전체 텍스트)
                             translation_status.config(text="🌐 번역: 번역 중...", fg=COLORS['warning'])
                             translated = translator.translate(english_text)
                             db_source = "온라인 번역"
@@ -848,51 +735,15 @@ def capture_and_translate():
                 # 번역 결과 업데이트
                 translation_label.config(text=translated, fg=COLORS['text_primary'])
                 
-                # 자동 모드와 수정 모드 구분
-                if not manual_mode:
-                    # 자동 모드: current_translation 설정하지 않음
-                    # 자동 모드: 번역 결과만 표시 (저장하지 않음)
-                    translation_label.config(text=f"자동 모드: {translated}\n(수정 모드에서만 저장 가능)", 
-                                           fg=COLORS['text_secondary'])
-                    
-                    # 히스토리에 추가 (DB 소스 정보 포함)
-                    translation_history.append({
-                        'time': time.strftime("%H:%M:%S"),
-                        'original': english_text,
-                        'translated': translated,
-                        'source': db_source
-                    })
-                else:
-                    # 수정 모드: current_translation 설정
-                    global current_translation
-                    current_translation = {
-                        'english': english_text,
-                        'korean': translated,
-                        'source': db_source
-                    }
-                    print(f"DEBUG: 수정 모드에서 번역 감지 - {english_text} → {translated}")
-                    print(f"DEBUG: current_translation 설정: {current_translation}")
-                    
-                    # 수정 모드: 저장/수정/건너뛰기 버튼 활성화 및 캡처 일시정지
-                    
-                    manual_save_button.config(state='normal')
-                    edit_translation_button.config(state='normal')
-                    skip_translation_button.config(state='normal')
-                    
-                    # 저장 가능 여부에 따른 메시지 표시
-                    if is_worth_saving(english_text):
-                        translation_label.config(text=f"수정 모드: {translated}\n'번역 저장', '번역 수정', 또는 '건너뛰기' 버튼을 눌러주세요", 
-                                               fg=COLORS['warning'])
-                    else:
-                        translation_label.config(text=f"저장 불가: {translated}\n(너무 짧거나 이미 충분히 사용된 번역)\n'건너뛰기' 버튼을 눌러 계속하세요", 
-                                               fg=COLORS['error'])
-                        # 저장 불가능한 경우 저장/수정 버튼 숨김
-                        manual_save_button.pack_forget()
-                        edit_translation_button.pack_forget()
-                        skip_translation_button.pack(side='left', padx=(0, 10))
-                    
-                    capture_paused = True  # 캡처 일시정지
-                    print(f"DEBUG: current_translation 설정 후: {current_translation}")
+                # 히스토리에 추가 (DB 소스 정보 포함)
+                translation_history.append({
+                    'time': time.strftime("%H:%M:%S"),
+                    'original': english_text,
+                    'translated': translated,
+                    'source': db_source
+                })
+                
+                # 자동 저장 기능 제거
                 
                 # 상태 업데이트
                 translation_status.config(text="🌐 번역: 완료", fg=COLORS['success'])
