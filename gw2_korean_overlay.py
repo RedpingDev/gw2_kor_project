@@ -73,9 +73,12 @@ COLORS = {
 root = tk.Tk()
 root.title("🎮 GW2 Korean Overlay")
 root.attributes('-topmost', True)  # 항상 위에
-root.geometry('600x400+100+100')
+root.geometry('700x500+100+100')  # 창 크기 증가
 root.configure(bg=COLORS['bg_primary'])
 root.attributes('-alpha', 0.9)  # 투명도
+
+# 최소 창 크기 설정 (버튼들이 보이는 최소 크기)
+root.minsize(600, 400)
 
 # 스타일 설정
 style = ttk.Style()
@@ -263,14 +266,14 @@ history_button = ttk.Button(button_frame,
                           text="📜 히스토리",
                           command=lambda: open_history(),
                           style='Modern.TButton')
-history_button.pack(side='left', padx=(0, 10))
+history_button.pack(side='left', padx=(0, 3))
 
 # 수동 입력 버튼
 manual_input_button = ttk.Button(button_frame,
-                               text="✏️ 수동 입력",
+                               text="✏️ 입력",
                                command=lambda: open_manual_input(),
                                style='Modern.TButton')
-manual_input_button.pack(side='left', padx=(0, 10))
+manual_input_button.pack(side='left', padx=(0, 3))
 
 # 시작/중지 버튼
 toggle_button = ttk.Button(button_frame,
@@ -373,9 +376,7 @@ def open_manual_input():
         # 입력 필드 초기화
         english_entry.delete(0, tk.END)
         korean_entry.delete(0, tk.END)
-        
-        # 히스토리 업데이트
-        update_history_display()
+
     
     def clear_inputs():
         english_entry.delete(0, tk.END)
