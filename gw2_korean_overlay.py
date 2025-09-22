@@ -265,7 +265,12 @@ history_button = ttk.Button(button_frame,
                           style='Modern.TButton')
 history_button.pack(side='left', padx=(0, 10))
 
-# 수정 모드 관련 버튼들 제거
+# 수동 입력 버튼
+manual_input_button = ttk.Button(button_frame,
+                               text="✏️ 수동 입력",
+                               command=lambda: open_manual_input(),
+                               style='Modern.TButton')
+manual_input_button.pack(side='left', padx=(0, 10))
 
 # 시작/중지 버튼
 toggle_button = ttk.Button(button_frame,
@@ -287,6 +292,119 @@ skip_translation_button = None  # 더미 변수 (사용되지 않음)
 is_worth_saving = lambda x: False  # 더미 함수 (사용되지 않음)
 
 # 새로운 기능 함수들
+def open_manual_input():
+    """수동 입력 창 열기"""
+    input_window = tk.Toplevel(root)
+    input_window.title("✏️ 수동 번역 입력")
+    input_window.geometry("500x400")
+    input_window.configure(bg=COLORS['bg_primary'])
+    input_window.attributes('-topmost', True)
+    
+    # 메인 프레임
+    main_frame = tk.Frame(input_window, bg=COLORS['bg_primary'])
+    main_frame.pack(fill='both', expand=True, padx=20, pady=20)
+    
+    # 제목
+    title_label = tk.Label(main_frame, text="✏️ 수동 번역 입력", 
+                          font=('Arial', 16, 'bold'), fg=COLORS['text_primary'], 
+                          bg=COLORS['bg_primary'])
+    title_label.pack(pady=(0, 20))
+    
+    # 영어 입력 프레임
+    english_frame = tk.Frame(main_frame, bg=COLORS['bg_secondary'], relief='flat', bd=1)
+    english_frame.pack(fill='x', pady=(0, 15), ipady=10)
+    
+    tk.Label(english_frame, text="영어 문장:", 
+            font=('Arial', 12, 'bold'), fg=COLORS['text_primary'], 
+            bg=COLORS['bg_secondary']).pack(anchor='w', padx=15, pady=(10, 5))
+    
+    english_entry = tk.Entry(english_frame, font=('Arial', 12), 
+                           bg=COLORS['bg_primary'], fg=COLORS['text_primary'],
+                           relief='flat', bd=0, width=50)
+    english_entry.pack(fill='x', padx=15, pady=(0, 10))
+    
+    # 한글 입력 프레임
+    korean_frame = tk.Frame(main_frame, bg=COLORS['bg_secondary'], relief='flat', bd=1)
+    korean_frame.pack(fill='x', pady=(0, 15), ipady=10)
+    
+    tk.Label(korean_frame, text="한글 번역:", 
+            font=('Arial', 12, 'bold'), fg=COLORS['text_primary'], 
+            bg=COLORS['bg_secondary']).pack(anchor='w', padx=15, pady=(10, 5))
+    
+    korean_entry = tk.Entry(korean_frame, font=('Arial', 12), 
+                           bg=COLORS['bg_primary'], fg=COLORS['text_primary'],
+                           relief='flat', bd=0, width=50)
+    korean_entry.pack(fill='x', padx=15, pady=(0, 10))
+    
+    # 버튼 프레임
+    button_frame = tk.Frame(main_frame, bg=COLORS['bg_primary'])
+    button_frame.pack(fill='x', pady=(20, 0))
+    
+    def save_manual_translation():
+        english_text = english_entry.get().strip()
+        korean_text = korean_entry.get().strip()
+        
+        if not english_text or not korean_text:
+            messagebox.showwarning("입력 오류", "영어와 한글 문장을 모두 입력해주세요.")
+            return
+        
+        # 사용자 DB에 저장
+        user_db[english_text] = korean_text
+        user_data['translations'] = user_db
+        
+        # 통계 업데이트
+        update_user_db_stats(english_text, korean_text)
+        user_data['stats'] = user_db_stats
+        
+        # 파일에 저장
+        with open(USER_DATA_FILE, 'w', encoding='utf-8') as f:
+            json.dump(user_data, f, ensure_ascii=False, indent=2)
+        
+        # 히스토리에 추가
+        translation_history.append({
+            'time': time.strftime("%H:%M:%S"),
+            'original': english_text,
+            'translated': korean_text,
+            'source': '수동 입력'
+        })
+        
+        messagebox.showinfo("저장 완료", f"번역이 저장되었습니다!\n{english_text} → {korean_text}")
+        
+        # 입력 필드 초기화
+        english_entry.delete(0, tk.END)
+        korean_entry.delete(0, tk.END)
+        
+        # 히스토리 업데이트
+        update_history_display()
+    
+    def clear_inputs():
+        english_entry.delete(0, tk.END)
+        korean_entry.delete(0, tk.END)
+    
+    # 저장 버튼
+    save_button = tk.Button(button_frame, text="💾 저장", 
+                          command=save_manual_translation,
+                          font=('Arial', 12, 'bold'),
+                          bg=COLORS['success'], fg='white',
+                          relief='flat', bd=0, padx=25, pady=10)
+    save_button.pack(side='left', padx=(0, 10))
+    
+    # 초기화 버튼
+    clear_button = tk.Button(button_frame, text="🗑️ 초기화", 
+                            command=clear_inputs,
+                            font=('Arial', 12, 'bold'),
+                            bg=COLORS['warning'], fg='white',
+                            relief='flat', bd=0, padx=25, pady=10)
+    clear_button.pack(side='left', padx=(0, 10))
+    
+    # 닫기 버튼
+    close_button = tk.Button(button_frame, text="❌ 닫기", 
+                            command=input_window.destroy,
+                            font=('Arial', 12, 'bold'),
+                            bg=COLORS['error'], fg='white',
+                            relief='flat', bd=0, padx=25, pady=10)
+    close_button.pack(side='left')
+
 def open_settings():
     settings_window = tk.Toplevel(root)
     settings_window.title("⚙️ 설정")
